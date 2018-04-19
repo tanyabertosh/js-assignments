@@ -28,7 +28,26 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    function rec(exclude) {
+        if (searchStr.length === exclude.length)
+            return true;
+        let pos = exclude[exclude.length - 1];
+        for (let val of [[0, 1], [1, 0], [0, -1], [-1, 0]])
+            if (
+                pos[0] + val[0] >= 0 && pos[0] + val[0] < puzzle.length &&
+                pos[1] + val[1] >= 0 && pos[1] + val[1] < puzzle[pos[0] + val[0]].length &&
+                !exclude.some(v => v[0] === pos[0] + val[0] && v[1] === pos[1] + val[1]) &&
+                puzzle[pos[0] + val[0]][pos[1] + val[1]] === searchStr[exclude.length]
+            )
+                if (rec(exclude.concat([[pos[0] + val[0], pos[1] + val[1]]])))
+                    return true;
+    }
+    
+    for (let i = 0; i < puzzle.length; i++)
+        for (let j = 0; j < puzzle[i].length; j++)
+            if (puzzle[i][j] === searchStr[0] && rec([[i, j]]))
+                return true;
+    return false;
 }
 
 
@@ -45,7 +64,16 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    function* rec(str) {
+        if (str.length === chars.length)
+            yield str;
+        else
+            for (let i = 0; i < chars.length; i++)
+                if (str.indexOf(chars[i]) < 0)
+                    yield *rec(str + chars[i]);
+    }
+    
+    yield *rec('');
 }
 
 
@@ -65,7 +93,18 @@ function* getPermutations(chars) {
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (купить по 1,6,5 и затем продать все по 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let result = 0,
+        quotesSorted = quotes.slice(0).sort((a, b) => b - a);
+    while (quotes.length) {
+        while (quotes.indexOf(quotesSorted[0]) < 0)
+            quotesSorted.shift();
+        let inx = quotes.indexOf(quotesSorted[0]);
+        result += quotesSorted[0] * inx;
+        for (let i = 0; i < inx; i++)
+            result -= quotes[i];
+        quotes.splice(0, inx + 1);
+    }
+    return result;
 }
 
 
@@ -92,12 +131,33 @@ function UrlShortener() {
 UrlShortener.prototype = {
 
     encode: function(url) {
-        throw new Error('Not implemented');
+        let result = '',
+            char = 0;
+        for (let i = 0; i < url.length; i++) {
+            char = char << this.BYTES | (this.urlAllowedChars.indexOf(url[i]) + 1);
+            if (i % 2 || i === url.length - 1) {
+                result += String.fromCharCode(char);
+                char = 0;
+            }
+        }
+        return result;
     },
     
     decode: function(code) {
-        throw new Error('Not implemented');
-    } 
+        const _AND = ~(~0 << this.BYTES);
+        let result = '';
+        for (let i = 0; i < code.length; i++) {
+            let char = code.charCodeAt(i);
+            let c = char >> this.BYTES & _AND;
+            if (c)
+                result += this.urlAllowedChars[c - 1];
+            c = char & _AND;
+            result += this.urlAllowedChars[c - 1];
+        }
+        return result;
+    },
+    
+    BYTES: 7
 }
 
 

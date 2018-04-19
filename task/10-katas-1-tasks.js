@@ -17,8 +17,44 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
-    var sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    const sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    let res = [], i, abbr;
+    for (i = 0; i < 32; i++)
+    {
+        if (i % 8 === 0)
+            abbr =  sides[i / 8];
+        else if (i % 4 === 0)
+            abbr = sides[(Math.floor((i + 8) / 16) % 2) * 2] + 
+                   sides[(Math.floor(i / 16) * 2) + 1];
+        else if (i % 2 === 0)
+            abbr = sides[Math.floor((i+2) / 8) % 4] +
+                               sides[(Math.floor((i + 6) / 16) % 2) * 2] + 
+                               sides[(Math.floor((i - 2) / 16) * 2) + 1];
+        else
+        {
+            if (((i % 16) - 1) % 14 === 0)
+                abbr = sides[(Math.floor((i + 1) / 16) % 2) * 2] + "b" + 
+                       sides[(((i % 4) % 3) + Math.floor(i / 8)) % 4];
+            else 
+            {
+                if (((i % 8) - 1) % 6 === 0)
+                    abbr = sides[(i % 2) + Math.floor(i / 16) * 2] + "b" + 
+                           sides[(((i % 4) % 3) + Math.floor(i / 8)) % 4];
+                else 
+                    if (Math.floor(i / 8) % 3 === 0)
+                        abbr = sides[0] + sides[(i % 2) + Math.floor(i / 16) * 2] + "b" + 
+                                          sides[(((i % 4) % 3) + Math.floor(i / 8)) % 4];
+                    else
+                        abbr = sides[2] + sides[(i % 2) + Math.floor(i / 16) * 2] + "b" + 
+                                          sides[(((i % 4) % 3) + Math.floor(i / 8)) % 4];
+            }
+        }
+        res.push({
+                abbreviation : abbr
+            });
+        res[i].azimuth = i * 11.25;
+    }
+    return res;
 }
 
 
@@ -56,7 +92,19 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    const stack = [str], exist = [];
+    while (stack.length > 0) {
+        str = stack.shift();
+        let match = str.match(/\{([^{}]+)\}/);
+        if (match) {
+            for (let value of match[1].split(',')) {
+                stack.push(str.replace(match[0], value));
+            }
+        } else if (exist.indexOf(str) < 0) {
+            exist.push(str);
+            yield str;
+        }
+    }
 }
 
 
@@ -89,7 +137,35 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+ 
+    let matrix = [];
+    for (var i = 0; i < n; i++) 
+        matrix[i] = [];
+
+    let j=1; i=1;
+    for (let e = 0; e < n*n; e++) {
+        matrix[i-1][j-1] = e;
+        if ((i + j) % 2 == 0) {
+            if (j < n) {
+                j ++;
+            } else {
+                i += 2;
+            }
+            if (i > 1) {
+                i --;
+            }
+        } else {
+            if (i < n) {
+                i ++;
+            } else {
+                j += 2;
+            }
+            if (j > 1) {
+                j --;
+            }
+        }
+    }
+    return matrix;
 }
 
 
@@ -114,7 +190,19 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
+    let num = new Array(10).fill(0);
+
+    dominoes.map( function(data) {
+        num[data[0]]++;
+        if (data[0] !== data[1]) {
+            num[data[1]]++;
+        }
+    });
+
+    let sum = 0;
+    num.map( (data) => sum += Math.floor(data/2) );
+
+    return sum >= dominoes.length - 1;
 }
 
 
@@ -138,7 +226,32 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    let len = nums.length,
+        min = 0, max = 1, size;
+    let arr = [];
+    let str = "";
+
+    if (len === 1)
+        return `${nums[0]}`;
+    if (len === 2)
+        return `${nums[0]},${nums[1]}`;
+
+    for (; max <= len; max++)
+    {
+        if ((nums[max] !== (nums[max - 1] + 1)) || (max === len))
+        {            
+            size = max - min;
+            if (size === 1)
+                str = "" + nums[min];
+            else if (size === 2)
+                str = "" + nums[min] + "," + nums[max - 1];
+            else
+                str = "" + nums[min] + "-" + nums[max - 1];
+            min = max;
+            arr.push(str);
+        }
+    }
+    return arr.join(",");
 }
 
 module.exports = {
